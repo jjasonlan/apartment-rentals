@@ -1,38 +1,31 @@
 import React from "react";
-import logo from "./logo.svg";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import Home from './containers/Home';
+import Signup from './containers/Signup';
+import Login from './containers/Login';
 import "./App.css";
 
 function App() {
-  const [data, setData] = React.useState(null);
-
-  React.useEffect(() => {
-    fetch("/api")
-      .then((res) => res.json())
-      .then((data) => setData(data.message));
-    const data = {
-      username: 'admin',
-      name: 'admin',
-      password: 'admin123',
-      role: 'admin',
-    };
-    fetch("/signup", {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    })
-      .then(res => res.json())
-      .then(data => setData(data.message));
-  }, []);
+  const [user, setUser] = React.useState(null);
+  const [isSignup, setIsSignup] = React.useState(false);
+  function loginAsUser (user) {
+    setUser({
+      name: user.name,
+      username: user.username,
+      role: user.role,
+    });
+  }
 
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>{!data ? "Loading..." : data}</p>
-      </header>
+      {user
+        ? <Home user={user} />
+        : isSignup
+          ? <Signup handleLogin={() => setIsSignup(false)} loginAsUser={loginAsUser}/>
+          : <Login handleSignup={() => setIsSignup(true)} loginAsUser={loginAsUser}/>
+      }
     </div>
+    
   );
 }
 

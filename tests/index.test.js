@@ -4,7 +4,7 @@ const User = require('../server/collections/Users');
 const supertest = require("supertest");
 
 beforeEach((done) => {
-  mongoose.createConnection("mongodb://localhost:27017/JestDB",
+  mongoose.connect("mongodb://localhost:27017/JestDB",
     { useNewUrlParser: true, useUnifiedTopology: true },
     () => done());
 });
@@ -16,11 +16,13 @@ afterEach((done) => {
 });
 
 test("GET /users", async () => {
-  const defaultAdminUser = {
+  const defaultAdminUser = new User({
     name: 'admin',
     username: 'admin',
     role: 'admin',
-  };
+    password: 'admin123',
+  });
+  await defaultAdminUser.save();
 
   await supertest(app).get("/users")
     .expect(200)
@@ -30,6 +32,50 @@ test("GET /users", async () => {
       expect(Array.isArray(users)).toBeTruthy();
 
       // Check data
-      expect(users[0]).toEqual(defaultAdminUser);
+      expect(users[0]).toEqual({
+        name: 'admin',
+        username: 'admin',
+        role: 'admin',
+      });
     });
+});
+
+describe("POST /signup", () => {
+  test("sign up client", async () => {
+    const newClient = {
+      name: 'client',
+      username: 'client',
+      role: 'client',
+      password: 'clientabc',
+    };
+
+    await supertest(app).post("/signup")
+      .send(newClient)
+      .expect(201)
+      .then(res => {
+        expect(res.body.message).toBe('account created');
+      })
+      .catch(err => {
+        throw new Error(err)
+      });
+  });
+
+  test("sign up realtor", async () => {
+    const newRealtor = {
+      name: 'realtor',
+      username: 'realtor',
+      role: 'realtor',
+      password: 'realtorabc',
+    };
+
+    await supertest(app).post("/signup")
+      .send(newRealtor)
+      .expect(201)
+      .then(res => {
+        expect(res.body.message).toBe('account created');
+      })
+      .catch(err => {
+        throw new Error(err)
+      });
+  });
 });

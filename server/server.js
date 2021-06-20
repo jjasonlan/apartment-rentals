@@ -1,35 +1,10 @@
-const mongoose = require('mongoose');
-const User = require('./collections/Users');
 const express = require("express");
 const app = express();
+const User = require('./collections/Users');
+const bodyParser = require('body-parser');
 
-async function main() {
-  mongoose.connect('mongodb://localhost:27017/test', {useNewUrlParser: true, useUnifiedTopology: true});
-  const db = mongoose.connection;
-  db.on('error', console.error.bind(console, 'connection error:'));
-  db.once('open', function() {
-    console.log('we\'re in');
-    initialize();
-  });
-}
-
-function createAdminUser() {
-  User.find({}, (err, users) => {
-    if (users.length) return;
-    console.log('adding admin user');
-    const adminUser = new User({
-      username: 'admin',
-      name: 'admin',
-      password: 'admin123',
-      role: 'admin',
-    });
-    adminUser.save();
-  });
-
-  User.find({}, (err, users) => {
-    console.log('users ' + users);
-  });
-}
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
 
 function initializeAuth() {
   app.post("/signup", (req, res) => {
@@ -44,8 +19,9 @@ function initializeAuth() {
           password: form.password,
           role: form.role,
         });
-        newUser.save();
-        res.status(201).send({ message: 'account created' });
+        newUser.save().then(() => {
+          res.status(201).send({ message: 'account created' });
+        });
       }
     })
   });
@@ -107,11 +83,6 @@ function initializeAuth() {
   });
 }
 
-function initialize() {
-  createAdminUser();
-  initializeAuth();
-}
-
-main().catch(console.error);
+initializeAuth();
 
 module.exports = app;

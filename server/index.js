@@ -72,7 +72,52 @@ function initializeAuth() {
         res.status(401).send({ message: 'Username or password is incorrect' });
       }
     });
-  })
+  });
+
+  app.get("/users", (req, res) => {
+    User.find({}, (err, users) => {
+      if (err) {
+        res.status(500).send({ message: 'request unsuccessful'})
+      } else {
+        res.send({ users: users.map(user => ({
+          name: user.name,
+          username: user.username,
+          role: user.role,
+        }))});
+      }
+    })
+  });
+
+  app.put("/editUser", (req, res) => {
+    const form = req.body;
+    
+    User.updateOne({
+      username: form.username,
+    }, {
+      ...form.name ? {name: form.name} : {},
+      ...form.role ? {role: form.role} : {},
+    }, (err, user) => {
+      if (user) {
+        res.send({ message: 'update successful' });
+      } else {
+        res.status(500).send(err);
+      }
+    })
+  });
+
+  app.delete("/deleteUser", (req, res) => {
+    const form = req.body;
+    
+    User.deleteOne({
+      username: form.username,
+    }, (err, user) => {
+      if (err) {
+        res.status(500).send(err);
+      } else {
+        res.send({ message: 'delete successful' });
+      }
+    })
+  });
 }
 
 function initialize() {

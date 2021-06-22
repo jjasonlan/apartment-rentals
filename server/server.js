@@ -30,7 +30,14 @@ function initializeAuth() {
     const form = req.body;
     User.findOne({ username: form.username, password: form.password }, (err, user) => {
       if (user) {
-        res.send({ message: 'login successful', user });
+        res.send({
+          message: 'login successful',
+          user: {
+            username: user.username,
+            name: user.name,
+            role: user.role,
+          },
+        });
       } else {
         res.status(401).send({ message: 'Username or password is incorrect' });
       }
@@ -51,21 +58,23 @@ function initializeAuth() {
     })
   });
 
-  app.put("/editUser", (req, res) => {
+  app.put("/editUser", async (req, res) => {
     const form = req.body;
     
-    User.updateOne({
+    const user = await User.findOne({
       username: form.username,
-    }, {
-      ...form.name ? {name: form.name} : {},
-      ...form.role ? {role: form.role} : {},
-    }, (err, user) => {
-      if (user) {
-        res.send({ message: 'update successful' });
-      } else {
-        res.status(500).send(err);
-      }
-    })
+    });
+
+    if (user) {
+      user.name = form.name;
+      user.role = form.role;
+      user.save().then(doc => {
+        res.send({ message: 'update successful', user: { username: doc.username } });
+      });
+    } else {
+      res.status(500).send(err);
+    }
+
   });
 
   app.delete("/deleteUser", (req, res) => {

@@ -60,6 +60,9 @@ describe("POST /signup", () => {
       .catch(err => {
         throw new Error(err)
       });
+    await User.count({}, (req, res) => {
+      expect(res).toBe(1);
+    });
   });
 
   test("sign up realtor", async () => {

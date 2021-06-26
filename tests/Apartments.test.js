@@ -35,18 +35,22 @@ describe("GET /apartments", () => {
       .expect(200)
       .then((response) => {
         // Check type and length
-        const users = response.body.apartments;
+        const apartments = response.body.apartments;
         expect(Array.isArray(apartments)).toBeTruthy();
 
+        const apartmentData = apartments[0];
+        delete apartmentData._id;
         // Check data
-        expect(apartments[0]).toEqual({
+        expect(apartmentData).toEqual({
           name: 'Dolores Park',
           description: 'Park in Sunny San Francisco',
           size: 1000,
           price: 4000,
           rooms: 6,
           location: [37.759703, -122.428093],
-          created_date: now,
+          created_date: now.toISOString(),
+          realtor_name: 'Mr. Landlord',
+          realtor: 'landlord',
         });
       });
   });
@@ -72,13 +76,13 @@ describe("POST /addListing", () => {
       .expect(201)
       .then(res => {
         expect(res.body.message).toBe('apartment listing created');
-        await Apartment.count({}, (req, res) => {
-          expect(res).toBe(1);
-        });
       })
       .catch(err => {
         throw new Error(err)
       });
+    await Apartment.count({}, (req, res) => {
+      expect(res).toBe(1);
+    });
   });
 
   test("prevent duplicates", async () => {
@@ -100,11 +104,13 @@ describe("POST /addListing", () => {
       .expect(201)
       .then(res => {
         expect(res.body.message).toBe('apartment listing created');
-        expect(Apartment.find().count()).toBe(1);
       })
       .catch(err => {
         throw new Error(err)
       });
+    await Apartment.count({}, (req, res) => {
+      expect(res).toBe(1);
+    });
 
     await supertest(app).post("/addListing")
       .send(newAprt)
@@ -132,10 +138,12 @@ describe("PUT /editListing", () => {
       realtor_name: 'Mr. Landlord',
       realtor: 'landlord',
     });
-    await newAprt.save();
+    let aprtID = '';
+    await newAprt.save().then(doc => aprtID = doc._id);
     
     await supertest(app).put("/editListing")
       .send({
+        id: aprtID,
         realtor: 'landlord_son',
         realtor_name: 'Mr. Landlord Jr.',
       })
@@ -145,21 +153,13 @@ describe("PUT /editListing", () => {
         expect(message).toBe('update successful');
         expect(typeof(apartment) === "object").toBeTruthy();
         expect(apartment).toEqual({
-          name: 'Dolores Park',
-          description: 'Park in Sunny San Francisco',
-          size: 1000,
-          price: 4000,
-          rooms: 6,
-          location: [37.759703, -122.428093],
-          created_date: now,
-          realtor: 'landlord_son',
-          realtor_name: 'Mr. Landlord Jr.',
+          _id: aprtID.toString(),
         });
       })
       .catch(err => {
         throw new Error(err)
       });
-      const apartment = await Apartment.findOne({name: ''});
+      const apartment = await Apartment.findOne({_id: aprtID});
       expect(apartment.realtor).toBe('landlord_son');
       expect(apartment.realtor_name).toBe('Mr. Landlord Jr.');
     });
@@ -180,11 +180,12 @@ describe("DELETE /deleteListing", () => {
       realtor_name: 'Mr. Landlord',
       realtor: 'landlord',
     });
-    await newAprt.save();
+    let aprtID = '';
+    await newAprt.save().then(doc => aprtID = doc._id);
 
     await supertest(app).delete("/deleteListing")
       .send({
-        name: 'Dolores Park',
+        id: aprtID,
       })
       .expect(200)
       .then((response) => {

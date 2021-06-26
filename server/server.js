@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const User = require('./collections/Users');
+const Apartment = require('./collections/Apartments');
 const bodyParser = require('body-parser');
 
 app.use(bodyParser.json());
@@ -92,6 +93,99 @@ function initializeAuth() {
   });
 }
 
+function initializeApartments() {
+  app.post("/addListing", (req, res) => {
+    const form = req.body;
+    Apartment.findOne({ name: form.name }, (err, user) => {
+      if (user) {
+        res.status(409).send({ message: 'name ' + form.name + ' is already taken'});
+      } else {
+        const newApartment = new Apartment({
+          name: form.name,
+          description: form.description,
+          size: form.size,
+          price: form.price,
+          rooms: form.rooms,
+          location: form.location,
+          created_date: form.created_date,
+          realtor_name: form.realtor_name,
+          realtor: form.realtor,
+        });
+        newApartment.save().then(() => {
+          res.status(201).send({ message: 'apartment listing created' });
+        });
+      }
+    })
+  });
+
+  app.get("/apartments", (req, res) => {
+    Apartment.find({}, (err, apartments) => {
+      if (err) {
+        res.status(500).send({ message: 'request unsuccessful'})
+      } else {
+        res.send({ apartments: apartments.map(apartment => ({
+          _id: apartment._id,
+          name: apartment.name,
+          description: apartment.description,
+          size: apartment.size,
+          price: apartment.price,
+          rooms: apartment.rooms,
+          location: apartment.location,
+          created_date: apartment.created_date,
+          realtor_name: apartment.realtor_name,
+          realtor: apartment.realtor,
+        }))});
+      }
+    })
+  });
+
+  app.put("/editListing", async (req, res) => {
+    const form = req.body;
+    
+    const apartment = await Apartment.findOne({_id: form.id});
+    const nameIsUsed = await Apartment.findOne({name: form.name});
+
+    if (nameIsUsed) {
+      res.status(400).send({ message: 'name ' + form.name + ' is in use' });
+    }
+
+    if (apartment) {
+      apartment.name = form.name || apartment.name,
+      apartment.description = form.description || apartment.description,
+      apartment.size = form.size || apartment.size,
+      apartment.price = form.price || apartment.price,
+      apartment.rooms = form.rooms || apartment.rooms,
+      apartment.location = form.location || apartment.location,
+      apartment.created_date = form.created_date || apartment.created_date,
+      apartment.realtor_name = form.realtor_name || apartment.realtor_name,
+      apartment.realtor = form.realtor || apartment.realtor,
+      apartment.save().then(doc => {
+        res.send({ message: 'update successful', apartment: { _id: doc._id } });
+      }).catch(err => {
+        res.status(500).send(err);
+      });
+    } else {
+      res.status(500).send(err);
+    }
+
+  });
+
+  app.delete("/deleteListing", (req, res) => {
+    const form = req.body;
+    
+    Apartment.deleteOne({
+      _id: form.id,
+    }, (err, user) => {
+      if (err) {
+        res.status(500).send(err);
+      } else {
+        res.send({ message: 'delete successful' });
+      }
+    })
+  });
+}
+
 initializeAuth();
+initializeApartments();
 
 module.exports = app;

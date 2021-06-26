@@ -2,6 +2,7 @@ import React from 'react';
 import Button from 'react-bootstrap/Button';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
+import './Navbar.css';
 
 export default function NavigationBar (props) {
   const {
@@ -15,7 +16,7 @@ export default function NavigationBar (props) {
 
   return (
     <Navbar>
-      <Navbar.Brand onClick={gotoHome}>Home</Navbar.Brand>
+      <Navbar.Brand className="home-btn" onClick={gotoHome}>Home</Navbar.Brand>
       <Navbar.Toggle />
       <Nav className="mr-auto">
         <Nav.Link onClick={gotoMap}>Map</Nav.Link>

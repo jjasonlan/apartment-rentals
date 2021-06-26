@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import AdminUsers from "./admin/AdminUsers";
 import Navbar from './Navbar';
+import Map from './Map';
+import GridView from './GridView';
 import './Home.css';
 
 export default function Home(props) {
@@ -20,8 +22,8 @@ export default function Home(props) {
         handleLogout={handleLogout}
       />
       {tab === 'users' ? <AdminUsers user={user} />
-        : tab === 'map' ? <div>Map</div>
-          : <div>Home</div>
+        : tab === 'map' ? <Map user={user}/>
+          : <GridView user={user}/>
       }
     </div>
   )

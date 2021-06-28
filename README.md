@@ -8,9 +8,9 @@ Database - MongoDB
 Testing - Jest, Supertest
 
 ## APIs
-Users - barebones authentication and user roles, including signup and login
-Apartments - CRUD interface for apartment listings
-Google Maps - Map view created using Google Maps API
+Users - barebones authentication and user roles, including signup and login  
+Apartments - CRUD interface for apartment listings  
+Google Maps - Map view created using Google Maps API  
 
 ## Functionality/Requirements
 * Users must be able to create an account and log in.

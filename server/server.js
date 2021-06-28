@@ -128,7 +128,7 @@ function initializeApartments() {
         });
         newApartment.save().then(() => {
           res.status(201).send({ message: 'apartment listing created' });
-        });
+        }).catch(err => res.status(400).send({ message: err.message }));
       }
     })
   });

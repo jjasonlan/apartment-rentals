@@ -18,7 +18,6 @@ export default function CreateListing(props) {
     lat,
     long,
     realtor,
-    rented,
   } = fields;
 
   const {
@@ -30,7 +29,6 @@ export default function CreateListing(props) {
     setLat,
     setLong,
     setRealtor,
-    setRented,
   } = fieldSetters;
 
   const [realtors, setRealtors] = useState([]);

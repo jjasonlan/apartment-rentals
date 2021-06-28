@@ -5,3 +5,8 @@
 .users-table button {
   margin: 0 5px;
 }
+
+.new-user {
+  float: right;
+  margin-bottom: 10px;
+}

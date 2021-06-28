@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
+import Alert from "react-bootstrap/Alert";
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Table from 'react-bootstrap/Table';
+import CreateUser from './CreateUser';
 import EditUser from './EditUser';
 import './AdminUsers.css'
 
@@ -11,13 +13,13 @@ export default function AdminUsers(props) {
   const [users, setUsers] = useState([]);
   const [editing, setEditing] = useState('');
   const [message, setMessage] = useState('');
+  const [creating, setCreating] = useState(false);
 
-  // edited user
-  const [name, setName] = useState("");
-  const [roleType, setRoleType] = useState("");
-  // edited user state setters
-  const setEditedName = (name) => setName(name);
-  const setEditedRoleType = (roleType) => setRoleType(roleType);
+  // new or edited user
+  const [name, setName] = useState('');
+  const [roleType, setRoleType] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
 
   useEffect(() => {
     fetch('/users')
@@ -43,16 +45,57 @@ export default function AdminUsers(props) {
   const clearEdits = () => {
     setName('');
     setRoleType('');
+    setUsername('');
+    setPassword('');
     setEditing('');
+    setCreating(false);
   };
 
   const handleEdit = (user) => () => {
-    console.log(user)
     setRoleType(user.role);
     setEditing(user.username);
   }
 
   const handleSave = () => {
+    if (creating) {
+      handleSaveCreate();
+    } else {
+      handleSaveEdit();
+    }
+  };
+
+  const handleSaveCreate = () => {
+    fetch("/signup", {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name,
+        username,
+        password,
+        role: roleType,
+      }),
+    }).then(res => res.json())
+      .then(res => {
+        const {message, user} = res;
+        if (message === 'account created') {
+          setUsers({
+            ...users,
+            [user._id]: {
+              name,
+              username,
+              role: roleType,
+            }
+          });
+        } else {
+          setMessage(message);
+        }
+      });
+      clearEdits();
+  };
+
+  const handleSaveEdit = () => {
     const username = editing;
     const userUpdate = {
       username,
@@ -85,7 +128,7 @@ export default function AdminUsers(props) {
 
   const handleDelete = (username) => () => {
     if (username === currentUser.username) {
-      alert('Cannot delete current user');
+      setMessage('Cannot delete current user');
       return;
     }
     fetch('/deleteUser', {
@@ -108,23 +151,37 @@ export default function AdminUsers(props) {
 
   return (
     <div className="container">
-      <h1>Manage Users</h1>
+      <h3>Manage Users</h3>
+      { message && <Alert key="message" variant="danger">{message}</Alert> }
+      <Button className="new-user" onClick={() => setCreating(true)}>New User</Button>
       <Modal
-        show={!!editing}
+        show={!!editing || !!creating}
         onHide={clearEdits} 
         aria-labelledby="contained-modal-title-vcenter"
         centered>
         <Modal.Header closeButton>
-          <Modal.Title>Edit User {editing}</Modal.Title>
+          <Modal.Title>{creating ? 'Create User' : 'Edit User ' + editing}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <EditUser
-            user={users[editing]}
-            name={name}
-            roleType={roleType}
-            setName={setEditedName}
-            setRoleType={setEditedRoleType}
-          />
+          {creating
+            ? <CreateUser
+              name={name}
+              roleType={roleType}
+              username={username}
+              password={password}
+              setName={setName}
+              setRoleType={setRoleType}
+              setUsername={setUsername}
+              setPassword={setPassword}
+            />
+            : <EditUser
+              user={users[editing]}
+              name={name}
+              roleType={roleType}
+              setName={setName}
+              setRoleType={setRoleType}
+            />
+          }
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={clearEdits}>

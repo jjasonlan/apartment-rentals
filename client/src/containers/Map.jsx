@@ -38,6 +38,7 @@ function MapElement(props) {
         <InfoWindow visible={showingInfoWindow === activeMarker.name} marker={activeMarker}>
           <div>
             <h4>{activeMarker.name}</h4>
+            <p>{activeMarker.description}</p>
             <p>{activeMarker.rooms} {activeMarker.rooms === 1 ? 'room' : 'rooms'}, ${activeMarker.price}/mo</p>
           </div>
         </InfoWindow>

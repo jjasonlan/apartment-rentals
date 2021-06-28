@@ -4,6 +4,10 @@
   position: relative;
 }
 
-h4 {
+.map-container h4 {
   font-size: 14px;
+}
+
+.map-container p {
+  margin-bottom: 1px;
 }

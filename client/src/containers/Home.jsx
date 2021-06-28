@@ -11,12 +11,12 @@ export default function Home(props) {
   const [apartments, setApartments] = useState([]);
   const [displayedApartments, setDisplayedApartments] = useState([]);
   // apartment filters
-  const [ minSize, setMinSize ] = useState(null);
-  const [ maxSize, setMaxSize ] = useState(null);
-  const [ minRooms, setMinRooms ] = useState(null);
-  const [ maxRooms, setMaxRooms ] = useState(null);
-  const [ minPrice, setMinPrice ] = useState(null);
-  const [ maxPrice, setMaxPrice ] = useState(null);
+  const [ minSize, setMinSize ] = useState('');
+  const [ maxSize, setMaxSize ] = useState('');
+  const [ minRooms, setMinRooms ] = useState('');
+  const [ maxRooms, setMaxRooms ] = useState('');
+  const [ minPrice, setMinPrice ] = useState('');
+  const [ maxPrice, setMaxPrice ] = useState('');
   const filters = {
     minSize,
     maxSize,

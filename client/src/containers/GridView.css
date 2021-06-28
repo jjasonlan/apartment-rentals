@@ -1,5 +1,13 @@
+@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css");
+
 .new {
   height: 38px;
   align-self: center;
 }
 
+.icon {
+  position: absolute;
+  top: 0;
+  right: 1px;
+  cursor: pointer;
+}

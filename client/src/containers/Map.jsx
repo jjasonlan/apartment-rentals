@@ -28,6 +28,7 @@ function MapElement(props) {
       >
         {apartments.map(apartment => (
           <Marker
+            key={apartment._id}
             name={apartment.name}
             position={{lat: apartment.location[0], lng: apartment.location[1]}}
             onClick={onClickMarker}

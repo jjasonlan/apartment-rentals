@@ -161,7 +161,7 @@ function initializeApartments() {
     const apartment = await Apartment.findOne({_id: form.id});
     const nameIsUsed = await Apartment.findOne({name: form.name});
 
-    if (nameIsUsed) {
+    if (nameIsUsed && !nameIsUsed._id.equals(apartment._id)) {
       res.status(400).send({ message: 'name ' + form.name + ' is in use' });
     }
 
@@ -182,7 +182,7 @@ function initializeApartments() {
         res.status(500).send(err);
       });
     } else {
-      res.status(500).send(err);
+      res.status(500).send({ message: 'update failed' });
     }
 
   });
@@ -190,15 +190,15 @@ function initializeApartments() {
   app.delete("/deleteListing", (req, res) => {
     const form = req.body;
     
-    Apartment.deleteOne({
+    Apartment.findOneAndRemove({
       _id: form.id,
-    }, (err, user) => {
+    }, (err, apartment) => {
       if (err) {
         res.status(500).send(err);
       } else {
         res.send({ message: 'delete successful' });
       }
-    })
+    }, {useFindAndModify: false})
   });
 }
 

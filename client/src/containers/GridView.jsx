@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
-import CreateListing from './CreateListing';
+import CreateOrEditListing from './CreateOrEditListing';
 import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
 import Table from 'react-bootstrap/Table';
@@ -40,13 +40,14 @@ export default function GridView (props) {
   
   // new listing fields
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState('');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [size, setSize] = useState(null);
-  const [rooms, setRooms] = useState(null);
-  const [price, setPrice] = useState(null);
-  const [lat, setLat] = useState(null);
-  const [long, setLong] = useState(null);
+  const [size, setSize] = useState('');
+  const [rooms, setRooms] = useState('');
+  const [price, setPrice] = useState('');
+  const [lat, setLat] = useState('');
+  const [long, setLong] = useState('');
   const [realtor, setRealtor] = useState({});
 
   const [message, setMessage] = useState('');
@@ -65,25 +66,109 @@ export default function GridView (props) {
   const fieldSetters = {
     setName,
     setDescription,
-    setRooms,
-    setPrice,
-    setSize,
+    setRooms: (v) => setRooms(parseNumberInput(v)),
+    setPrice: (v) => setPrice(parseNumberInput(v)),
+    setSize: (v) => setSize(parseNumberInput(v)),
+    setLat: (v) => setLat(parseNumberInput(v)),
+    setLong: (v) => setLong(parseNumberInput(v)),
     setRealtor,
-    setLat,
-    setLong
   };
 
   const clearEdits = () => {
     setName('');
     setDescription('');
-    setSize(null);
-    setRooms(null);
-    setPrice(null);
-    setLat(null);
-    setLong(null);
+    setSize('');
+    setRooms('');
+    setPrice('');
+    setLat('');
+    setLong('');
     setRealtor({});
     setCreating(false);
+    setEditing('');
   };
+
+  const handleEdit = () => {
+    fetch('/editListing', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        id: editing,
+        name,
+        description,
+        size,
+        price,
+        rooms,
+        location: [lat, long],
+        realtor_name: realtor.name,
+        realtor: realtor.username,
+      }),
+    }).then(res => res.json())
+      .then(res => {
+        const { message } = res;
+        if (message === 'update successful') {
+          const newApartments = [...allApartments];
+          const index = newApartments.findIndex(apartment => apartment._id === editing);
+          const apartment = {
+            ...newApartments[index],
+            name,
+            description,
+            size,
+            price,
+            rooms,
+            location: [lat, long],
+            realtor_name: realtor.name,
+            realtor: realtor.username,
+          }
+          if (index > -1) {
+            newApartments.splice(index, 1, apartment);
+            setApartments(newApartments);
+          }
+        } else {
+          const { message } = res;
+          setMessage(message);
+        }
+      })
+    clearEdits();
+  };
+
+  const selectForEditing = (apartment) => {
+    setName(apartment.name);
+    setDescription(apartment.description);
+    setSize(apartment.size);
+    setRooms(apartment.rooms);
+    setPrice(apartment.price);
+    setLat(apartment.location[0]);
+    setLong(apartment.location[1]);
+    setRealtor({
+      name: apartment.realtor_name,
+      username: apartment.realtor,
+    });
+    setEditing(apartment._id);
+  };
+
+  const handleDelete = () => {
+    fetch('/deleteListing', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        id: editing,
+      }),
+    }).then(res => res.json())
+      .then(res => {
+        const {message} = res;
+        if (message === 'delete successful') {
+          const apartments = [...allApartments];
+          const index = apartments.findIndex(apartment => apartment._id === editing);
+          apartments.splice(index, 1);
+          setApartments(apartments);
+        }
+      })
+    clearEdits();
+  }
 
   const handleSave = () => {
     fetch('/addListing', {
@@ -167,10 +252,9 @@ export default function GridView (props) {
     e.preventDefault();
   };
 
-  const parseNumberInput = (e) => {
-    const value = e.target.value;
+  const parseNumberInput = (value) => {
     if (!value || isNaN(value)) {
-      return null;
+      return '';
     }
     return parseInt(value, 10);
   }
@@ -212,25 +296,26 @@ export default function GridView (props) {
       { message && <Alert key="message" variant="danger">{message}</Alert> }
       <h3>Home</h3>
       <Modal
-        show={!!creating}
+        show={!!creating || !!editing}
         onHide={clearEdits} 
         aria-labelledby="contained-modal-title-vcenter"
         centered>
         <Modal.Header closeButton>
-          <Modal.Title>Create Listing</Modal.Title>
+          <Modal.Title>{creating ? 'Create Listing' : 'Edit Listing'}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <CreateListing
+          <CreateOrEditListing
             fields={fields}
             fieldSetters={fieldSetters}
           />
         </Modal.Body>
         <Modal.Footer>
+          {editing && <Button style={{position: 'absolute', left: 'calc(12px + .25rem)'}} variant='danger' onClick={handleDelete}>Delete</Button>}
           <Button variant="secondary" onClick={clearEdits}>
             Close
           </Button>
-          <Button variant="primary" onClick={handleSave}>
-            Add Listing
+          <Button variant="primary" onClick={creating ? handleSave : handleEdit}>
+            {creating ? 'Add' : 'Edit'} Listing
           </Button>
         </Modal.Footer>
       </Modal>
@@ -242,7 +327,7 @@ export default function GridView (props) {
               autoFocus
               type="number"
               value={minSize}
-              onChange={(e) => setMinSize(parseNumberInput(e))}
+              onChange={(e) => setMinSize(parseNumberInput(e.target.value))}
             />
           </Form.Group>
           <Form.Group as={Col} size="sm" controlId="max-size">
@@ -251,7 +336,7 @@ export default function GridView (props) {
               autoFocus
               type="number"
               value={maxSize}
-              onChange={(e) => setMaxSize(parseNumberInput(e))}
+              onChange={(e) => setMaxSize(parseNumberInput(e.target.value))}
             />
           </Form.Group>
           <Form.Group as={Col} size="sm" controlId="min-rooms">
@@ -260,7 +345,7 @@ export default function GridView (props) {
               autoFocus
               type="number"
               value={minRooms}
-              onChange={(e) => setMinRooms(parseNumberInput(e))}
+              onChange={(e) => setMinRooms(parseNumberInput(e.target.value))}
             />
           </Form.Group>
           <Form.Group as={Col} size="sm" controlId="max-rooms">
@@ -269,7 +354,7 @@ export default function GridView (props) {
               autoFocus
               type="number"
               value={maxRooms}
-              onChange={(e) => setMaxRooms(parseNumberInput(e))}
+              onChange={(e) => setMaxRooms(parseNumberInput(e.target.value))}
             />
           </Form.Group>
           <Form.Group as={Col} size="sm" controlId="min-price">
@@ -278,7 +363,7 @@ export default function GridView (props) {
               autoFocus
               type="number"
               value={minPrice}
-              onChange={(e) => setMinPrice(parseNumberInput(e))}
+              onChange={(e) => setMinPrice(parseNumberInput(e.target.value))}
             />
           </Form.Group>
           <Form.Group as={Col} size="sm" controlId="max-price">
@@ -287,10 +372,10 @@ export default function GridView (props) {
               autoFocus
               type="number"
               value={maxPrice}
-              onChange={(e) => setMaxPrice(parseNumberInput(e))}
+              onChange={(e) => setMaxPrice(parseNumberInput(e.target.value))}
             />
           </Form.Group>
-          <Button onClick={() => setCreating(true)} className="new">Add Listing</Button>
+          {!isClient(user) && <Button onClick={() => setCreating(true)} className="new">Add Listing</Button>}
         </Form.Row>
       </Form>
       <Table striped bordered hover size="sm">
@@ -312,8 +397,11 @@ export default function GridView (props) {
             const rentedOrAvailable = isRentedOrAvailable(apartment.rented);
             const rentedButtonVariant = apartment.rented ? 'secondary' : 'success';
             return (
-              <tr>
-                <td>{apartment.name}</td>
+              <tr key={apartment._id}>
+                <td style={{position: 'relative', 'padding-right': '15px'}}>
+                  {apartment.name}
+                  <i onClick={() => selectForEditing(apartment)} className="bi bi-pencil icon"></i>
+                </td>
                 <td>{apartment.description}</td>
                 <td>{apartment.size} sqft.</td>
                 <td>{apartment.rooms}</td>

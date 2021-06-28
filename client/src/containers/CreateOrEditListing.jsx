@@ -1,9 +1,9 @@
 import React, {useState, useEffect} from 'react';
-import Form from 'react-bootstrap/Form';
-import DropdownButton from 'react-bootstrap/DropdownButton';
 import Dropdown from 'react-bootstrap/Dropdown';
+import DropdownButton from 'react-bootstrap/DropdownButton';
+import Form from 'react-bootstrap/Form';
 
-export default function CreateListing(props) {
+export default function CreateOrEditListing(props) {
   const {
     fields,
     fieldSetters,
@@ -116,7 +116,7 @@ export default function CreateListing(props) {
           id="input-group-dropdown"
         >
           {realtors.map(realtor => (
-            <Dropdown.Item value={realtor.name} onClick={() => setRealtor(realtor)}>
+            <Dropdown.Item value={realtor.name} key={realtor.username} onClick={() => setRealtor(realtor)}>
               {realtor.name}
             </Dropdown.Item>
           ))}

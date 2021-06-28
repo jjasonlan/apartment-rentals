@@ -20,8 +20,8 @@ function initializeAuth() {
           password: form.password,
           role: form.role,
         });
-        newUser.save().then(() => {
-          res.status(201).send({ message: 'account created' });
+        newUser.save().then((doc) => {
+          res.status(201).send({ message: 'account created', user: doc });
         });
       }
     })
@@ -47,6 +47,20 @@ function initializeAuth() {
 
   app.get("/users", (req, res) => {
     User.find({}, (err, users) => {
+      if (err) {
+        res.status(500).send({ message: 'request unsuccessful'})
+      } else {
+        res.send({ users: users.map(user => ({
+          name: user.name,
+          username: user.username,
+          role: user.role,
+        }))});
+      }
+    })
+  });
+
+  app.get("/realtors", (req, res) => {
+    User.find({role: 'realtor'}, (err, users) => {
       if (err) {
         res.status(500).send({ message: 'request unsuccessful'})
       } else {
@@ -96,8 +110,8 @@ function initializeAuth() {
 function initializeApartments() {
   app.post("/addListing", (req, res) => {
     const form = req.body;
-    Apartment.findOne({ name: form.name }, (err, user) => {
-      if (user) {
+    Apartment.findOne({ name: form.name }, (err, apartment) => {
+      if (apartment) {
         res.status(409).send({ message: 'name ' + form.name + ' is already taken'});
       } else {
         const newApartment = new Apartment({
@@ -110,6 +124,7 @@ function initializeApartments() {
           created_date: form.created_date,
           realtor_name: form.realtor_name,
           realtor: form.realtor,
+          rented: form.rented,
         });
         newApartment.save().then(() => {
           res.status(201).send({ message: 'apartment listing created' });
@@ -134,6 +149,7 @@ function initializeApartments() {
           created_date: apartment.created_date,
           realtor_name: apartment.realtor_name,
           realtor: apartment.realtor,
+          rented: apartment.rented,
         }))});
       }
     })
@@ -159,6 +175,7 @@ function initializeApartments() {
       apartment.created_date = form.created_date || apartment.created_date,
       apartment.realtor_name = form.realtor_name || apartment.realtor_name,
       apartment.realtor = form.realtor || apartment.realtor,
+      apartment.rented = form.rented === undefined ? apartment.rented : form.rented,
       apartment.save().then(doc => {
         res.send({ message: 'update successful', apartment: { _id: doc._id } });
       }).catch(err => {

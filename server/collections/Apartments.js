@@ -38,6 +38,10 @@ const apartmentSchema = new mongoose.Schema({
   created_date: {
     type: Date,
     required: true,
+  },
+  rented: {
+    type: Boolean,
+    required: true,
   }
 });
 

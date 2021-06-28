@@ -16,29 +16,68 @@ afterEach((done) => {
 });
 
 describe("GET /users", () => {
-  test("returns list of users", async () => {
+  test("returns list of users", () => {
     const defaultAdminUser = new User({
       name: 'admin',
       username: 'admin',
       role: 'admin',
       password: 'admin123',
     });
-    await defaultAdminUser.save();
-
-    await supertest(app).get("/users")
-      .expect(200)
-      .then((response) => {
-        // Check type and length
-        const users = response.body.users;
-        expect(Array.isArray(users)).toBeTruthy();
-
-        // Check data
-        expect(users[0]).toEqual({
-          name: 'admin',
-          username: 'admin',
-          role: 'admin',
+    defaultAdminUser.save().then(() => {
+      supertest(app).get("/users")
+        .expect(200)
+        .then((response) => {
+          // Check type and length
+          const users = response.body.users;
+          expect(Array.isArray(users)).toBeTruthy();
+  
+          // Check data
+          expect(users[0]).toEqual({
+            name: 'admin',
+            username: 'admin',
+            role: 'admin',
+          });
         });
-      });
+    });
+  });
+});
+
+describe("GET /realtors", () => {
+  test("returns list of realtors", () => {
+    const defaultAdminUser = new User({
+      name: 'admin',
+      username: 'admin',
+      role: 'admin',
+      password: 'admin123',
+    });
+    defaultAdminUser.save().then(() => {
+      supertest(app).get("/realtors")
+        .expect(200)
+        .then((response) => {
+          // Check type and length
+          const users = response.body.users;
+          expect(Array.isArray(users)).toBeTruthy();
+          expect(users.length).toBe(0);
+        });
+    });
+    
+    const defaultRealtorUser = new User({
+      name: 'realtor',
+      username: 'realtor',
+      role: 'realtor',
+      password: 'realtor123',
+    });
+    defaultRealtorUser.save().then(() => {
+      supertest(app).get('/realtors')
+        .expect(200)
+        .then(response => {
+          // Check type and length
+          const users = response.body.users;
+          expect(Array.isArray(users)).toBeTruthy();
+          expect(users.length).toBe(1);
+        })
+    });
+
   });
 });
 

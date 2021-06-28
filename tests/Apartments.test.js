@@ -28,6 +28,7 @@ describe("GET /apartments", () => {
       created_date: now,
       realtor_name: 'Mr. Landlord',
       realtor: 'landlord',
+      rented: false,
     });
     await newAprt.save();
 
@@ -51,6 +52,7 @@ describe("GET /apartments", () => {
           created_date: now.toISOString(),
           realtor_name: 'Mr. Landlord',
           realtor: 'landlord',
+          rented: false,
         });
       });
   });
@@ -69,6 +71,7 @@ describe("POST /addListing", () => {
       created_date: now,
       realtor_name: 'Mr. Landlord',
       realtor: 'landlord',
+      rented: false,
     };
 
     await supertest(app).post("/addListing")
@@ -97,6 +100,7 @@ describe("POST /addListing", () => {
       created_date: now,
       realtor_name: 'Mr. Landlord',
       realtor: 'landlord',
+      rented: false,
     };
 
     await supertest(app).post("/addListing")
@@ -125,7 +129,7 @@ describe("POST /addListing", () => {
 });
 
 describe("PUT /editListing", () => {
-  test("updates listing name", async () => {
+  test("updates realtor", async () => {
     const now = new Date();
     const newAprt = new Apartment({
       name: 'Dolores Park',
@@ -137,6 +141,7 @@ describe("PUT /editListing", () => {
       created_date: now,
       realtor_name: 'Mr. Landlord',
       realtor: 'landlord',
+      rented: false,
     });
     let aprtID = '';
     await newAprt.save().then(doc => aprtID = doc._id);
@@ -179,6 +184,7 @@ describe("DELETE /deleteListing", () => {
       created_date: now,
       realtor_name: 'Mr. Landlord',
       realtor: 'landlord',
+      rented: false,
     });
     let aprtID = '';
     await newAprt.save().then(doc => aprtID = doc._id);

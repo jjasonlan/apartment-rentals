@@ -3,20 +3,18 @@ import { Map, GoogleApiWrapper, Marker, InfoWindow } from "google-maps-react";
 import './Map.css';
 
 function MapElement(props) {
-  const [selectedPlace, setSelectedPlace] = useState({});
+  const { apartments } = props;
   const [activeMarker, setActiveMarker] = useState({});
   const [showingInfoWindow, setShowingInfoWindow] = useState('');
 
   const onClickMarker = (props, marker, e) => {
-    console.log({props, marker})
-    setSelectedPlace(props);
     setActiveMarker(marker);
     setShowingInfoWindow(marker.name);
   }
 
   return (
     <div className='map-container'>
-      <div>Map</div>
+      <h3>Map</h3>
       <Map
         google={props.google}
         zoom={14}
@@ -28,16 +26,21 @@ function MapElement(props) {
         }
         initialCenter={{lat: 37.759703, lng: -122.428093}}
       >
-        <Marker
-          name={'Dolores park'}
-          position={{lat: 37.759703, lng: -122.428093}}
-          onClick={onClickMarker}
-        />
-          <InfoWindow visible={showingInfoWindow === activeMarker.name} marker={activeMarker}>
-            <div>
-              <h1>{activeMarker.name}</h1>
-            </div>
-          </InfoWindow>
+        {apartments.map(apartment => (
+          <Marker
+            name={apartment.name}
+            position={{lat: apartment.location[0], lng: apartment.location[1]}}
+            onClick={onClickMarker}
+            {...apartment}
+          >
+          </Marker>
+        ))}
+        <InfoWindow visible={showingInfoWindow === activeMarker.name} marker={activeMarker}>
+          <div>
+            <h4>{activeMarker.name}</h4>
+            <p>{activeMarker.rooms} {activeMarker.rooms === 1 ? 'room' : 'rooms'}, ${activeMarker.price}/mo</p>
+          </div>
+        </InfoWindow>
       </Map>
     </div>
   )
